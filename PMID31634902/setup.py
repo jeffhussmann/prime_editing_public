@@ -117,6 +117,72 @@ def make_pegRNAs():
 
     pegRNAs.to_csv(targets_dir / f'pegRNAs.csv')
 
+def setup_Fig3B():
+    rows = get_fig_rows('Fig3b')
+
+    fig_dir = data_dir / 'Fig3B'
+    fig_dir.mkdir(exist_ok=True)
+
+    #download_rows(rows, fig_dir)
+
+    def parse_fn(fn):
+        _, target, nick_offset, rep = fn.split('.')[0].split('_')
+        rep = int(rep[-1])
+        return target, nick_offset, rep
+
+    groups = defaultdict(dict)
+
+    group_descriptions = {}
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        target, nick_offset, rep = parse_fn(original_fastq_fn)
+
+        int_nick_offset = nick_offset
+        if int_nick_offset == 'none':
+            int_nick_offset = 0
+        int_nick_offset = int(int_nick_offset)
+
+        group_name = f'{target}_{int_nick_offset:+04d}'
+        exp_name = f'{group_name}_{rep}'
+        
+        groups[group_name][exp_name] = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+            'target_info': target,
+            'nick_offset': int_nick_offset,
+        }
+        
+        group_descriptions[group_name] = {
+            'target_info': target,
+            'supplemental_indices': '',
+            'experiment_type': 'prime_editing',
+            'pegRNAs': f'{target}_3b',
+            'sgRNA': f'{target}_3b_{nick_offset}' if nick_offset != 'none' else '',
+        }
+
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_values(by=['target_info', 'nick_offset', 'replicate'], inplace=True)
+    sample_sheet_df.drop(columns=['target_info', 'nick_offset'], inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
 def setup_Fig4G():
     rows = get_fig_rows('Fig4_g')
 
@@ -156,7 +222,7 @@ def setup_Fig4G():
             'experiment_type': 'prime_editing',
             'target_info': 'HEK3',
             'pegRNAs': group_name_to_pegRNA_name(group_name),
-            'sgRNA': 'sgRNA_HEK3_4a_+90',
+            'sgRNA': 'HEK3_4a_+90',
         } for group_name in groups
     }    
 
@@ -187,19 +253,22 @@ def make_targets():
 
     targets = {}
 
-    sgRNAs = pd.read_csv(targets_dir / 'sgRNAs.csv', index_col='name').squeeze()
-
     for ti_name, rows in all_groups.groupby('target_info'):
         pegRNAs = set()
         
         for pegRNA in rows['pegRNAs']:
             pegRNAs.add(pegRNA)
 
+        sgRNAs = set()
+        for sgRNA in rows['sgRNA']:
+            if sgRNA is not None:
+                sgRNAs.add(sgRNA)
+
         targets[ti_name] = {
             'genome': 'hg38',
             'amplicon_primers': ti_name,
             'pegRNAs': ';'.join(sorted(pegRNAs)),
-            'sgRNA_sequence': ';'.join(sorted(n for n in sgRNAs.index if n.startswith(ti_name))),
+            'sgRNA_sequence': ';'.join(sorted(sgRNAs)),
         }
 
     targets_df = pd.DataFrame(targets).T
@@ -218,5 +287,6 @@ if __name__ == '__main__':
     #make_pegRNAs()
 
     #setup_Fig4G()
+    #setup_Fig3B()
 
     make_targets()
