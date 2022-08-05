@@ -1,3 +1,4 @@
+import itertools
 import logging
 import multiprocessing
 import shlex
@@ -17,9 +18,7 @@ import knock_knock.build_targets
 
 import repair_seq as rs
 
-paper_name = 'PMID34887556'
-
-base_dir = Path('/home/jah/projects/prime_editing_public') / paper_name
+base_dir = Path(__file__).parent
 
 targets_dir = base_dir / 'targets'
 targets_dir.mkdir(exist_ok=True)
@@ -73,7 +72,7 @@ def load_primers():
 
     return relevant_primers
 
-def infer_primers(fastq_fn):
+def infer_primers(fastq_fn, num_reads=None):
     name_to_primer = load_primers()
     name_to_primer_rc = {name: utilities.reverse_complement(seq) for name, seq in name_to_primer.items()}
 
@@ -82,7 +81,12 @@ def infer_primers(fastq_fn):
     starts = Counter()
     ends = Counter()
 
-    for read in hits.fastq.reads(fastq_fn):
+    reads = hits.fastq.reads(fastq_fn)
+
+    if num_reads is not None:
+        reads = itertools.islice(reads, num_reads)
+
+    for read in reads:
         total += 1
         read = read[4:]
         for name, seq in name_to_primer.items():
@@ -109,7 +113,7 @@ def infer_primers(fastq_fn):
     
     return left_primer, right_primer, left_fraction, right_fraction, total
 
-def infer_all_primers(fig_dir, rows):
+def infer_all_primers(fig_dir, rows, num_reads=None):
     SRR_to_primers = {}
 
     left_fractions = []
@@ -118,7 +122,7 @@ def infer_all_primers(fig_dir, rows):
     for SRR_accession in tqdm.tqdm(rows.index, desc='Inferring amplicon primers'):
         fastq_fn = fig_dir / f'{SRR_accession}.fastq.gz'
         
-        left_primer, right_primer, left_fraction, right_fraction, total = infer_primers(fastq_fn)
+        left_primer, right_primer, left_fraction, right_fraction, total = infer_primers(fastq_fn, num_reads)
 
         left_fractions.append(left_fraction)
         right_fractions.append(right_fraction)
@@ -185,6 +189,127 @@ def setup_Fig1C(download=True):
             'experiment_type': 'twin_prime',
             'target_info': 'HEK3',
             'pegRNAs': ';'.join(group_name_to_pegRNA_names(group_name)),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+def setup_Fig2C(download=True):
+    rows = get_fig_rows('Fig2c')
+
+    fig_dir = data_dir / 'Fig2C'
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    def primer_pair_to_target_name(first, second):
+        return f'PAH-{first[-4:]}+{second[-4:]}'
+
+    # Note: PAH exon 4 samples appear to use an unannotated primer.
+    SRR_to_primers = infer_all_primers(fig_dir, rows, num_reads=1000)
+    name_to_primer = load_primers()
+
+    primer_pairs_seen = {}
+    for first, second in SRR_to_primers.values():
+        name = primer_pair_to_target_name(first, second)
+        seqs = ';'.join([name_to_primer[first], name_to_primer[second]])
+        primer_pairs_seen[name] = seqs
+
+    primer_pairs_seen = pd.Series(primer_pairs_seen)
+    primer_pairs_seen.index.name = 'name'
+    primer_pairs_seen.name = 'amplicon_primer_sequences'
+
+    primer_pair_fn = fig_dir / 'amplicon_primers.csv'
+    primer_pairs_seen.to_csv(primer_pair_fn)
+
+    exon_and_overlap_to_pegRNA_prefixes = {
+        (4, 24): ['PAH_E4.2_45', 'PAH_E4.4_43'],
+        (4, 36): ['PAH_E4.2_50', 'PAH_E4.4_50'],
+        (4, 59): ['PAH_E4.2_62', 'PAH_E4.4_61'],
+        (7, 22): ['PAH_E7.2_34', 'PAH_E7.5_34'],
+        (7, 24): ['PAH_E7.2_44', 'PAH_E7.6_44'],
+        (7, 42): ['PAH_E7.2_44', 'PAH_E7.5_44'],
+        (7, 47): ['PAH_E7.2_55', 'PAH_E7.6_56'],
+    }
+
+    def parse_Fig2C_fn(fn):
+        fn = fn.split('.')[0]
+        _, _, exon, overlap, _, pegRNA_type, _ = fn.split('_', 6)
+        
+        if exon == 'Ex4':
+            recoded = 64
+        else:
+            if exon[-1] == 'a':
+                recoded = 46
+            elif exon[-1] == 'b':
+                recoded = 64
+            else:
+                raise ValueError(exon)
+                
+        exon_num = int(exon[2])
+        
+        rep = int(fn[-1])
+        
+        overlap = int(overlap[:-2])
+        
+        return exon_num, recoded, overlap, pegRNA_type, rep
+
+    def Fig2C_group_name_to_pegRNA_names(group_name):
+        target_name, recoded, overlap, pegRNA_type = group_name.split('_')
+        
+        exon_num = 4 if '1687' in target_name else 7
+        overlap = int(overlap)
+        
+        extra = '_EvoPreQ1' if pegRNA_type == 'epegRNA' else ''
+        
+        pegRNA_names = [f'{name}{extra}' for name in exon_and_overlap_to_pegRNA_prefixes[exon_num, overlap]]
+        
+        return pegRNA_names
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        exon, recoded, overlap, pegRNA_type, rep = parse_Fig2C_fn(original_fastq_fn)
+        
+        target_name = primer_pair_to_target_name(*SRR_to_primers[SRR_accession])
+        
+        group_name = f'{target_name}_{recoded}_{overlap}_{pegRNA_type}'
+        
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+        
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'twin_prime',
+            'target_info': group_name.split('_')[0],
+            'pegRNAs': ';'.join(Fig2C_group_name_to_pegRNA_names(group_name)),
         } for group_name in groups
     }    
 

@@ -13,9 +13,7 @@ import hits.fasta
 import repair_seq as rs
 import knock_knock.build_targets
 
-paper_name = 'PMID31634902'
-
-base_dir = Path('/home/jah/projects/prime_editing_public') / paper_name
+base_dir = Path(__file__).parent
 
 targets_dir = base_dir / 'targets'
 targets_dir.mkdir(exist_ok=True)
