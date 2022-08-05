@@ -117,13 +117,14 @@ def make_pegRNAs():
 
     pegRNAs.to_csv(targets_dir / f'pegRNAs.csv')
 
-def setup_Fig3B():
+def setup_Fig3B(download=True):
     rows = get_fig_rows('Fig3b')
 
     fig_dir = data_dir / 'Fig3B'
     fig_dir.mkdir(exist_ok=True)
 
-    #download_rows(rows, fig_dir)
+    if download:
+        download_rows(rows, fig_dir)
 
     def parse_fn(fn):
         _, target, nick_offset, rep = fn.split('.')[0].split('_')
@@ -183,13 +184,14 @@ def setup_Fig3B():
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
-def setup_Fig4G():
+def setup_Fig4G(download=True):
     rows = get_fig_rows('Fig4_g')
 
     fig_dir = data_dir / 'Fig4G'
     fig_dir.mkdir(exist_ok=True)
 
-    #download_rows(rows, fig_dir)
+    if download:
+        download_rows(rows, fig_dir)
 
     def parse_fn(fn):
         _, _, del_type, rep = fn.split('.')[0].split('_')

@@ -132,6 +132,7 @@ def setup_Fig1C(download=True):
     rows = get_fig_rows('Fig1c')
 
     fig_dir = data_dir / 'Fig1C'
+    fig_dir.mkdir(parents=True, exist_ok=True)
 
     if download:
         download_rows(rows, fig_dir)
@@ -142,7 +143,6 @@ def setup_Fig1C(download=True):
     name_to_primer = load_primers()
 
     primer_pairs_seen = {'HEK3': ';'.join([name_to_primer['HEK3_fwd'], name_to_primer['HEK3_rev']])}
-
 
     primer_pairs_seen = pd.Series(primer_pairs_seen)
     primer_pairs_seen.index.name = 'name'
@@ -210,12 +210,89 @@ def setup_Fig1C(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+def setup_Fig2E(download=True):
+    rows = get_fig_rows('Fig2e')
+
+    fig_dir = data_dir / 'Fig2E'
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    name_to_primer = load_primers()
+
+    primer_pairs_seen = {'HEK3': ';'.join([name_to_primer['HEK3_fwd'], name_to_primer['HEK3_rev']])}
+
+    primer_pairs_seen = pd.Series(primer_pairs_seen)
+    primer_pairs_seen.index.name = 'name'
+    primer_pairs_seen.name = 'amplicon_primer_sequences'
+
+    primer_pair_fn = fig_dir / 'amplicon_primers.csv'
+    primer_pairs_seen.to_csv(primer_pair_fn)
+
+    def parse_Fig2E_fn(fn):
+        _, _, pegRNA_type, _, strategy, length, rep, _ = fn.split('.')[0].split('-')
+        rep = int(rep[-1])
+        length = int(length[3:-2])
+        return pegRNA_type, strategy, length, rep
+
+    def Fig2E_group_name_to_pegRNA_names(group_name):
+        _, strategy, length, pegRNA_type = group_name.split('_')
+        extra = '_EvoPreQ1' if pegRNA_type == 'EvoPreQ1' else ''
+        pegRNA_names = [f'HEK3_DF_{letter}_{strategy}_del{length}nt{extra}' for letter in ['A', 'B']]
+        return pegRNA_names
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        pegRNA_type, strategy, length, rep = parse_Fig2E_fn(original_fastq_fn)
+        group_name = f'HEK3_{strategy}_{length}_{pegRNA_type}'
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+        
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'twin_prime',
+            'target_info': 'HEK3',
+            'pegRNAs': ';'.join(Fig2E_group_name_to_pegRNA_names(group_name)),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
 def make_targets():
     batches = rs.arrayed_experiment_group.get_all_batches(base_dir)
 
     # Merge amplicon primers from each batch.
     fns = [batch.data_dir / 'amplicon_primers.csv' for batch in batches.values()]
-    amplicon_primers = pd.concat([pd.read_csv(fn, index_col=0).squeeze('columns') for fn in fns])
+    all_dfs = [pd.read_csv(fn, index_col=0).squeeze('columns') for fn in fns]
+    amplicon_primers = pd.concat(all_dfs).drop_duplicates()
     amplicon_primers.to_csv(targets_dir / 'amplicon_primers.csv')
 
     all_groups = pd.concat({name: batch.group_descriptions for name, batch in batches.items()})
