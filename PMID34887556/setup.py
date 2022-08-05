@@ -1,3 +1,4 @@
+import logging
 import multiprocessing
 import shlex
 import subprocess
@@ -114,15 +115,13 @@ def infer_all_primers(fig_dir, rows):
     left_fractions = []
     right_fractions = []
 
-    for SRR_accession in tqdm.tqdm(rows.index):
+    for SRR_accession in tqdm.tqdm(rows.index, desc='Inferring amplicon primers'):
         fastq_fn = fig_dir / f'{SRR_accession}.fastq.gz'
         
         left_primer, right_primer, left_fraction, right_fraction, total = infer_primers(fastq_fn)
 
         left_fractions.append(left_fraction)
         right_fractions.append(right_fraction)
-        
-        #print(SRR_accession, total, f'{left_fraction:0.2%}', f'{right_fraction:0.2%}')
         
         SRR_to_primers[SRR_accession] = (left_primer, right_primer)
 
@@ -286,6 +285,199 @@ def setup_Fig2E(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+def setup_Fig3C(download=True):
+    rows = get_fig_rows('Fig3c')
+
+    fig_dir = data_dir / 'Fig3C'
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    def parse_Fig3C_fn(fn):
+        fn = fn.split('.')[0]
+        _, _, _, pegRNAs, rep, _ = fn.split('-')
+        
+        first_pegRNA, second_pegRNA = pegRNAs.split('_')
+        
+        # 22.07.05: empirically, there appears to be a cyclic mis-annotation of the second pegRNA
+        # for samples with first_pegRNA A1615a.
+        
+        if first_pegRNA == 'A1615a':
+            fix_annotations = {
+                'B1701a': 'B1705b',
+                'B1676a': 'B1701a',
+                'B1705b': 'B1676a',
+            }
+            second_pegRNA = fix_annotations[second_pegRNA]
+
+        rep = int(rep[-1])
+        
+        return first_pegRNA, second_pegRNA, rep
+
+    def Fig3C_group_name_to_pegRNA_names(group_name):
+        target_name, first_pegRNA, second_pegRNA = group_name.split('_')
+            
+        pegRNA_names = [f'AAVS1_{name}' for name in [first_pegRNA, second_pegRNA]]
+        
+        return pegRNA_names
+
+    def primer_pair_to_target_name(first, second):
+        return f'AAVS1-{first[-4:]}+{second[-4:]}'
+
+    SRR_to_primers = infer_all_primers(fig_dir, rows)
+    name_to_primer = load_primers()
+
+    primer_pairs_seen = {}
+    for first, second in SRR_to_primers.values():
+        name = primer_pair_to_target_name(first, second)
+        seqs = ';'.join([name_to_primer[first], name_to_primer[second]])
+        primer_pairs_seen[name] = seqs
+
+    primer_pairs_seen = pd.Series(primer_pairs_seen)
+    primer_pairs_seen.index.name = 'name'
+    primer_pairs_seen.name = 'amplicon_primer_sequences'
+
+    primer_pair_fn = fig_dir / 'amplicon_primers.csv'
+    primer_pairs_seen.to_csv(primer_pair_fn)
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        first_pegRNA, second_pegRNA, rep = parse_Fig3C_fn(original_fastq_fn)
+        
+        target_name = primer_pair_to_target_name(*SRR_to_primers[SRR_accession])
+        
+        group_name = f'{target_name}_{first_pegRNA}_{second_pegRNA}'
+        
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+        
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'twin_prime',
+            'target_info': group_name.split('_')[0],
+            'pegRNAs': ';'.join(Fig3C_group_name_to_pegRNA_names(group_name)),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+def setup_FigED4(download=True):
+    rows = get_fig_rows('ED_Fig4')
+
+    fig_dir = data_dir / 'FigED4'
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    def primer_pair_to_target_name(first, second):
+        return f'AAVS1-{first[-4:]}+{second[-4:]}'
+
+    SRR_to_primers = infer_all_primers(fig_dir, rows)
+    name_to_primer = load_primers()
+
+    primer_pairs_seen = {}
+    for first, second in SRR_to_primers.values():
+        name = primer_pair_to_target_name(first, second)
+        seqs = ';'.join([name_to_primer[first], name_to_primer[second]])
+        primer_pairs_seen[name] = seqs
+
+    primer_pairs_seen = pd.Series(primer_pairs_seen)
+    primer_pairs_seen.index.name = 'name'
+    primer_pairs_seen.name = 'amplicon_primer_sequences'
+
+    primer_pair_fn = fig_dir / 'amplicon_primers.csv'
+    primer_pairs_seen.to_csv(primer_pair_fn)
+
+    def parse_FigED4_fn(fn):
+        fn = fn.split('.')[0]
+        _, _, _, first_pegRNA, second_pegRNA, _ = fn.split('_')
+        
+        return first_pegRNA, second_pegRNA
+
+    def FigED4_group_name_to_pegRNA_names(group_name):
+        target_name, first_pegRNA, second_pegRNA = group_name.split('_')
+            
+        pegRNA_names = [f'AAVS1_{name}' for name in [first_pegRNA, second_pegRNA]]
+        
+        return pegRNA_names
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        first_pegRNA, second_pegRNA = parse_FigED4_fn(original_fastq_fn)
+        
+        target_name = primer_pair_to_target_name(*SRR_to_primers[SRR_accession])
+        
+        group_name = f'{target_name}_{first_pegRNA}_{second_pegRNA}'
+        
+        exp_name = f'{group_name}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': 1,
+        }
+        
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'twin_prime',
+            'target_info': group_name.split('_')[0],
+            'pegRNAs': ';'.join(FigED4_group_name_to_pegRNA_names(group_name)),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
 def make_targets():
     batches = rs.arrayed_experiment_group.get_all_batches(base_dir)
 
@@ -320,3 +512,8 @@ def make_targets():
     targets_df.to_csv(targets_dir / 'targets.csv')
 
     knock_knock.build_targets.build_target_infos_from_csv(base_dir)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
+    make_targets()
