@@ -21,7 +21,7 @@ targets_dir.mkdir(exist_ok=True)
 data_dir = base_dir / 'data'
 data_dir.mkdir(exist_ok=True)
 
-run_table = pd.read_csv(base_dir / 'PRJNA565979.txt')
+run_table = pd.read_csv(base_dir / 'documents' / 'PRJNA565979.txt')
 SRR_to_fn = run_table[['Run', 'Sample Name']].set_index('Run').squeeze()
 
 def get_fig_rows(fig_prefix):
@@ -37,7 +37,7 @@ def download_rows(rows, dest_dir):
 def make_primers():
     full_primers = defaultdict(dict)
 
-    for line in open(base_dir / 'primers.txt'):
+    for line in open(base_dir / 'documents' / 'primers.txt'):
         name, side, sequence = line.strip().rsplit(' ', 2)
         if 'off-target' in name:
             continue
@@ -63,13 +63,12 @@ def make_primers():
             fh.write(f'{name},{primers[name]["fwd"]};{primers[name]["rev"]}\n')
 
 def make_sgRNAs():
-    nicking_sgRNAs = pd.read_csv(base_dir / 'sgRNAs.txt',
+    nicking_sgRNAs = pd.read_csv(base_dir / 'documents' / 'sgRNAs.txt',
                                  sep=' ',
                                  comment='#',
                                  header=None,
                                  index_col=0,
                                 ).squeeze().sort_index()
-
 
     with open(targets_dir / 'sgRNAs.csv', 'w') as fh:
         fh.write('name,sgRNA_sequence\n')
@@ -78,9 +77,9 @@ def make_sgRNAs():
             fh.write(f'{name},{seq}\n')
 
 def make_pegRNAs():
-    scaffolds = hits.fasta.to_dict(base_dir / 'scaffolds.fasta')
+    scaffolds = hits.fasta.to_dict(base_dir / 'documents' / 'scaffolds.fasta')
 
-    pegRNAs_in = pd.read_csv(base_dir / 'pegRNAs.txt',
+    pegRNAs_in = pd.read_csv(base_dir / 'documents' / 'pegRNAs.txt',
                              sep=' ',
                              header=None,
                              index_col='name',
@@ -153,7 +152,7 @@ def setup_Fig3B(download=True):
         
         group_descriptions[group_name] = {
             'target_info': target,
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'prime_editing',
             'pegRNAs': f'{target}_3b',
             'sgRNA': f'{target}_3b_{nick_offset}' if nick_offset != 'none' else '',
@@ -168,10 +167,11 @@ def setup_Fig3B(download=True):
 
     sample_sheet = {}
 
-    for group_name, group in groups.items():
+    for g_i, (group_name, group) in enumerate(groups.items()):
         for exp_name, info in group.items():
             sample_sheet[exp_name] = {
                 'group': group_name,
+                'color': g_i,
                 **info,
             }
 
@@ -179,6 +179,11 @@ def setup_Fig3B(download=True):
     sample_sheet_df.index.name = 'sample_name'
     sample_sheet_df.sort_values(by=['target_info', 'nick_offset', 'replicate'], inplace=True)
     sample_sheet_df.drop(columns=['target_info', 'nick_offset'], inplace=True)
+
+    sample_sheet_df['color'] = 0
+
+    for g_i, (group, rows) in enumerate(sample_sheet_df.groupby('group', sort=False)):
+        sample_sheet_df.loc[sample_sheet_df['group'] == group, 'color'] = g_i + 1
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
@@ -218,7 +223,7 @@ def setup_Fig4G(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'prime_editing',
             'target_info': 'HEK3',
             'pegRNAs': group_name_to_pegRNA_name(group_name),

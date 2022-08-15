@@ -2,6 +2,7 @@ import itertools
 import logging
 import multiprocessing
 import shlex
+import shutil
 import subprocess
 
 from pathlib import Path
@@ -26,7 +27,7 @@ targets_dir.mkdir(exist_ok=True)
 data_dir = base_dir / 'data'
 data_dir.mkdir(exist_ok=True)
 
-run_table = pd.read_csv(base_dir / 'PRJNA770428.txt')
+run_table = pd.read_csv(base_dir / 'documents' / 'PRJNA770428.txt')
 SRR_to_fn = run_table[['Run', 'Sample Name']].set_index('Run').squeeze()
 
 def get_fig_rows(fig_prefix):
@@ -40,7 +41,7 @@ def download_rows(rows, dest_dir):
         pool.starmap(download_SRR, [(SRR, dest_dir) for SRR in rows.index])
 
 def load_primers():
-    amplicon_primers = pd.read_csv(base_dir / 'amplicon_primers.txt', sep=' ', comment='#', header=None)
+    amplicon_primers = pd.read_csv(base_dir / 'documents' / 'amplicon_primers.txt', sep=' ', comment='#', header=None)
 
     prefixes = {
         'fwd': 'ACACTCTTTCCCTACACGACGCTCTTCCGATCTNNNN',
@@ -185,7 +186,7 @@ def setup_Fig1C(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'twin_prime',
             'target_info': 'HEK3',
             'pegRNAs': ';'.join(group_name_to_pegRNA_names(group_name)),
@@ -200,10 +201,11 @@ def setup_Fig1C(download=True):
 
     sample_sheet = {}
 
-    for group_name, group in groups.items():
+    for g_i, (group_name, group) in enumerate(sorted(groups.items())):
         for exp_name, info in group.items():
             sample_sheet[exp_name] = {
                 'group': group_name,
+                'color': g_i + 1,
                 **info,
             }
 
@@ -306,7 +308,7 @@ def setup_Fig2C(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'twin_prime',
             'target_info': group_name.split('_')[0],
             'pegRNAs': ';'.join(Fig2C_group_name_to_pegRNA_names(group_name)),
@@ -382,7 +384,7 @@ def setup_Fig2E(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'twin_prime',
             'target_info': 'HEK3',
             'pegRNAs': ';'.join(Fig2E_group_name_to_pegRNA_names(group_name)),
@@ -397,10 +399,11 @@ def setup_Fig2E(download=True):
 
     sample_sheet = {}
 
-    for group_name, group in groups.items():
+    for g_i, (group_name, group) in enumerate(sorted(groups.items())):
         for exp_name, info in group.items():
             sample_sheet[exp_name] = {
                 'group': group_name,
+                'color': g_i + 1,
                 **info,
             }
 
@@ -486,7 +489,7 @@ def setup_Fig3C(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'twin_prime',
             'target_info': group_name.split('_')[0],
             'pegRNAs': ';'.join(Fig3C_group_name_to_pegRNA_names(group_name)),
@@ -501,10 +504,11 @@ def setup_Fig3C(download=True):
 
     sample_sheet = {}
 
-    for group_name, group in groups.items():
+    for g_i, (group_name, group) in enumerate(sorted(groups.items())):
         for exp_name, info in group.items():
             sample_sheet[exp_name] = {
                 'group': group_name,
+                'color': g_i + 1,
                 **info,
             }
 
@@ -575,7 +579,7 @@ def setup_FigED4(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': '',
+            'supplemental_indices': 'hg38',
             'experiment_type': 'twin_prime',
             'target_info': group_name.split('_')[0],
             'pegRNAs': ';'.join(FigED4_group_name_to_pegRNA_names(group_name)),
@@ -605,6 +609,10 @@ def setup_FigED4(download=True):
 
 def make_targets():
     batches = rs.arrayed_experiment_group.get_all_batches(base_dir)
+
+    targets_dir = base_dir / 'targets'
+    targets_dir.mkdir(exist_ok=True)
+    shutil.copy(base_dir / 'documents' / 'pegRNAs.csv', targets_dir)
 
     # Merge amplicon primers from each batch.
     fns = [batch.data_dir / 'amplicon_primers.csv' for batch in batches.values()]
