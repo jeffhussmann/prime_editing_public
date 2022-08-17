@@ -1,7 +1,7 @@
 # Copy-pasted from 41587_2021_1133_MOESM1_ESM.pdf Supp Table 2 and re-formatted.
 # Empirically, PAH_E4 samples in Fig2C appear to have been amplified with a
 # primer not included in the pdf; it has been added manually as PAH_AVAE4fe 
-# (E4 forward empirical), guessing that the complmentary region is 20 nts.
+# (E4 forward empirical), guessing that the complementary region is 20 nts.
 # Figure 1
 HEK3_fwd ACACTCTTTCCCTACACGACGCTCTTCCGATCTNNNNATGTGGGCTGCCTAGAAAGG
 HEK3_rev TGGAGTTCAGACGTGTGCTCTTCCGATCTCCCAGCCAAACTTGTCAACC
