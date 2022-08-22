@@ -215,6 +215,8 @@ def setup_Fig1C(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+    make_targets()
+
 def setup_Fig2C(download=True):
     rows = get_fig_rows('Fig2c')
 
@@ -336,6 +338,8 @@ def setup_Fig2C(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+    make_targets()
+
 def setup_Fig2E(download=True):
     rows = get_fig_rows('Fig2e')
 
@@ -412,6 +416,8 @@ def setup_Fig2E(download=True):
     sample_sheet_df.sort_index(inplace=True)
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+    make_targets()
 
 def setup_Fig3C(download=True):
     rows = get_fig_rows('Fig3c')
@@ -518,6 +524,8 @@ def setup_Fig3C(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+    make_targets()
+
 def setup_FigED4(download=True):
     rows = get_fig_rows('ED_Fig4')
 
@@ -606,6 +614,8 @@ def setup_FigED4(download=True):
     sample_sheet_df.sort_index(inplace=True)
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+    make_targets()
 
 def make_targets():
     batches = rs.arrayed_experiment_group.get_all_batches(base_dir)
