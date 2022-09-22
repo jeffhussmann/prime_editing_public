@@ -217,6 +217,124 @@ def setup_Fig1C(download=True):
 
     make_targets()
 
+def setup_Fig2B(download=True):
+    rows = get_fig_rows('Fig2b')
+
+    fig_dir = data_dir / 'Fig2B'
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    name_to_primer = load_primers()
+    primer_pairs_seen = {'HEK3': ';'.join([name_to_primer['HEK3_fwd'], name_to_primer['HEK3_rev']])}
+
+    primer_pairs_seen = pd.Series(primer_pairs_seen)
+    primer_pairs_seen.index.name = 'name'
+    primer_pairs_seen.name = 'amplicon_primer_sequences'
+
+    primer_pair_fn = fig_dir / 'amplicon_primers.csv'
+    primer_pairs_seen.to_csv(primer_pair_fn)
+
+    def parse_Fig2B_fn(fn):
+        fn = fn.split('.')[0]
+        fields = fn.split('-')
+
+        if 'PE3' in fn:
+            modality = 'PE3'
+        elif 'twinPE' in fn:
+            modality = 'twinPE'
+        else:
+            raise ValueError
+
+        insertion_length = fields[4]
+        rep = int(fields[5][-1])
+        
+        return modality, insertion_length, rep
+
+    def Fig2B_group_name_to_pegRNA_names(group_name):
+        target_name, modality, insertion_length = group_name.split('_')
+        
+        if modality == 'PE3':
+            pegRNA_names = [f'{modality}_{target_name}_FKBP_ins{insertion_length}']
+        elif modality == 'twinPE':
+            pegRNA_names = [f'{modality}_{target_name}_FKBP_ins{insertion_length}_{side}' for side in ['A', 'B']]
+        else:
+            raise ValueError(modality)
+        
+        return pegRNA_names
+
+    def Fig2B_group_name_to_sgRNA_names(group_name):
+        target_name, modality, insertion_length = group_name.split('_')
+        
+        if modality == 'PE3':
+            sgRNA_names = ['HEK3_3b_+90_nicking']
+        elif modality == 'twinPE':
+            sgRNA_names = []
+        else:
+            raise ValueError(modality)
+        
+        return sgRNA_names
+
+    def Fig2B_group_name_to_experiment_type(group_name):
+        target_name, modality, insertion_length = group_name.split('_')
+        if modality == 'twinPE':
+            experiment_type = 'twin_prime'
+        elif modality == 'PE3':
+            experiment_type = 'prime_editing'
+        return experiment_type
+        
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        modality, insertion_length, rep = parse_Fig2B_fn(original_fastq_fn)
+        
+        target_name = 'HEK3'
+        
+        group_name = f'{target_name}_{modality}_{insertion_length}'
+        
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+        
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': 'hg38',
+            'experiment_type': Fig2B_group_name_to_experiment_type(group_name),
+            'target_info': group_name.split('_')[0],
+            'pegRNAs': ';'.join(Fig2B_group_name_to_pegRNA_names(group_name)),
+            'sgRNA_sequence': ';'.join(Fig2B_group_name_to_sgRNA_names(group_name)),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+    make_targets()
+    
 def setup_Fig2C(download=True):
     rows = get_fig_rows('Fig2c')
 
@@ -630,27 +748,35 @@ def make_targets():
     amplicon_primers = pd.concat(all_dfs).drop_duplicates()
     amplicon_primers.to_csv(targets_dir / 'amplicon_primers.csv')
 
-    all_groups = pd.concat({name: batch.group_descriptions for name, batch in batches.items()})
+    all_groups = pd.concat({name: batch.group_descriptions for name, batch in batches.items()}).fillna('')
 
     targets = {}
 
     for ti_name, rows in all_groups.groupby('target_info'):
         pegRNAs = set()
+        sgRNAs = set()
         
         for pegRNA_pair in rows['pegRNAs']:
             for pegRNA in pegRNA_pair.split(';'):
                 pegRNAs.add(pegRNA)
 
+        if 'sgRNA_sequence' in rows:
+            for sgRNA_list in rows['sgRNA_sequence']:
+                for sgRNA in sgRNA_list.split(';'):
+                    if sgRNA != '':
+                        sgRNAs.add(sgRNA)
+
         targets[ti_name] = {
             'genome': 'hg38',
             'amplicon_primers': ti_name,
             'pegRNAs': ';'.join(sorted(pegRNAs)),
+            'sgRNA_sequence': ';'.join(sorted(sgRNAs)),
         }
 
     targets_df = pd.DataFrame(targets).T
 
     targets_df.index.name = 'name'
-    targets_df = targets_df.sort_index()[['genome', 'amplicon_primers', 'pegRNAs']]
+    targets_df = targets_df.sort_index()[['genome', 'amplicon_primers', 'pegRNAs', 'sgRNA_sequence']]
 
     targets_df.to_csv(targets_dir / 'targets.csv')
 
