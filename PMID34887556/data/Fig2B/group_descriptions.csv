@@ -1,0 +1,5 @@
+group,supplemental_indices,experiment_type,target_info,pegRNAs,sgRNA
+HEK3_PE3_108bp,hg38,prime_editing,HEK3,PE3_HEK3_FKBP_ins108bp,HEK3_3b_+90_nicking
+HEK3_PE3_12bp,hg38,prime_editing,HEK3,PE3_HEK3_FKBP_ins12bp,HEK3_3b_+90_nicking
+HEK3_PE3_36bp,hg38,prime_editing,HEK3,PE3_HEK3_FKBP_ins36bp,HEK3_3b_+90_nicking
+HEK3_twinPE_108bp,hg38,twin_prime,HEK3,twinPE_HEK3_FKBP_ins108bp_A;twinPE_HEK3_FKBP_ins108bp_B,
