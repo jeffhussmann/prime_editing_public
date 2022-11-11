@@ -1,0 +1,46 @@
+LOCUS       RUNX1                   1300 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   <unknown id>
+VERSION     <unknown id>
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    501..522
+                     /label="forward_primer"
+                     /ApEinfo_fwdcolor="#75C6A9"
+     misc_feature    complement(780..800)
+                     /label="reverse_primer"
+                     /ApEinfo_fwdcolor="#9eafd2"
+     misc_feature    501..505
+                     /label="sequencing_start"
+     misc_feature    501..505
+                     /label="anchor"
+     sgRNA_SpCas9H840629..648
+                     /label="RUNX1_4f_+38"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+ORIGIN
+        1 aaaacacagc acagccccat gctgatgatt ttaacctaac caagtctgtc agtctcctgt
+       61 actctctgcc ttatagagac agctgccttg ccactttggc cctgaagtcc ccaggctggt
+      121 gcaaggctat ctgagagcct ccgcctcctg ccccacactg gcaccagccc tcctggctgg
+      181 ctctgtgcat gtgcctgcta agccccaggg caggctgcat tctgggccac acagcatgcc
+      241 gagttaagga taactcagac acaggcattc cgggcaaggg acagcaaaat aaaacccagg
+      301 gagcttcgtg caagcttcat aatctctaag cctttaaaca agaccagcac aacttactcg
+      361 cacttgacaa agttctcacg caccgactga acactccaac agcataacta agtatttatt
+      421 aaaacatttc tgaagagctt ccatctgatt agtaagtaat ccaatagact tgtaatcata
+      481 tgcctcagtt tgaattcctc tcacaaacaa gacagggaac tggcaggcac cgaggcatct
+      541 ctgcaccgag gtgaaacaag ctgccatttc attacaggca aagctgagca aaagtagata
+      601 ttacaagacc agcatgtact cacctctcat gaagcactgt gggtacgaag gaaatgactc
+      661 aaatatgctg tctgaagcca tcgcttcctc ctgaaaatgc accctcttct gaaggcgggg
+      721 gactcaatga tttcttttac cttcggagcg aaaaccaaga caggtcactg tttcagcctc
+      781 acccctctag ccctacatct ctctttcttc tcccctctgc tggatacctc tgggactccc
+      841 caagccctat taaaaaatgc acctttgtaa aaacaaatat tcaaattgtt aaagattaaa
+      901 aaaaaaaaaa aagccagcgc cgccttggct gtgggttggt gatgctcacc acgctgcgaa
+      961 accctgtggt ttgcattcag tgtgattcgt cctgcctgct gaccactatg ctgggttcag
+     1021 acttctgaca ctgccaggct acccaacttg tggttctgtg gttgtttatg aggcccaaag
+     1081 aagttttcac acaacccaaa ttacaaattt aactgttccc ctttccacag cccatctcaa
+     1141 ttggttcttg ccaatcatgt gacttaagtg atgtcaattt ttttttttct tttctgagca
+     1201 atgcccttcc ttccctccac ctgccctccc ccaggctgtg caagaaaata gccgagtaga
+     1261 ctttgcaaga gggggggatg tagaaaaaag tgactcagtc
+//

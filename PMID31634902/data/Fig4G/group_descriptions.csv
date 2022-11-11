@@ -1,0 +1,7 @@
+group,supplemental_indices,experiment_type,target_info,pegRNAs,sgRNA
+HEK3_del1-10,,prime_editing,HEK3,HEK3_4g_del1-10,HEK3_4a_+90
+HEK3_del1-15,,prime_editing,HEK3,HEK3_4g_del1-15,HEK3_4a_+90
+HEK3_del1-25,,prime_editing,HEK3,HEK3_4g_del1-25,HEK3_4a_+90
+HEK3_del1-30,,prime_editing,HEK3,HEK3_4g_del1-30,HEK3_4a_+90
+HEK3_del1-5,,prime_editing,HEK3,HEK3_4g_del1-5,HEK3_4a_+90
+HEK3_del1-80,,prime_editing,HEK3,HEK3_4g_del1-80,HEK3_4a_+90

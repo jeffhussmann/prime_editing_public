@@ -1,0 +1,9 @@
+features_to_show:
+- - DNMT1
+  - forward_primer
+- - DNMT1
+  - reverse_primer
+genome_source: hg38
+sources:
+- DNMT1
+target: DNMT1

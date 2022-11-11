@@ -1,0 +1,46 @@
+LOCUS       DNMT1                   1275 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   <unknown id>
+VERSION     <unknown id>
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    501..521
+                     /label="forward_primer"
+                     /ApEinfo_fwdcolor="#75C6A9"
+     misc_feature    complement(753..775)
+                     /label="reverse_primer"
+                     /ApEinfo_fwdcolor="#9eafd2"
+     misc_feature    501..505
+                     /label="sequencing_start"
+     misc_feature    501..505
+                     /label="anchor"
+     sgRNA_SpCas9H840complement(663..682)
+                     /label="DNMT1_4h_+49"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+ORIGIN
+        1 atggtcacag gatggctgct ccactgccag gcatcacaac ccacttcaga ccaaagaagg
+       61 cctaccagcc acggggaagg ccagccaaga cttcctttaa aaggctttcc tggaagctac
+      121 actagcaagt tccatttgca tgtcatgggg atcaactcac gtgactcagt tctgaacaaa
+      181 cacagacaga cacacggagt gtctagcttc aaacgtgcta gcttcaaact ccacgtgggt
+      241 cgccttcagc atggaagagc ttgttcctgt ctgacctcag ccagaagtcc cgtgcaaatc
+      301 acgaataccc acccagggtg gtttatagga gagatttatt tgaagaaata ttacaacata
+      361 taaaaactac ataaagtctt aatttccact catacagtgg tagatttgat ataatgcata
+      421 ataaaaaact tttaaaatcc agaatgcaca aagtactgca caatttgatc actaaatcat
+      481 tagttgataa gcgaacctca cacaacagct tcatgtcagc caaggccaca aacaccatgt
+      541 accacacatg tgaacggaca gattgacatg ttaaaaacac aacatcagtg catgttgggg
+      601 attcctggtg ccagaaacag gggtgacggg agggcagaac tagtccttag cagcttcctc
+      661 ctcctttatt ttagctgaag ggaaataaaa ggaaaagtca ctctggggaa cacgcccggt
+      721 gtcacgccac ttgacaggcg agtaacagac atggaccatc aggaaacatt aacgtactga
+      781 tgttaacagc tgacccaata agtggcagag tgctaaggga acgttcacgg agactgaaca
+      841 ctcctcaaac ggtccccaga gggttctaga cccagaggct caagtgagca gctgaggcag
+      901 gtgcctgctg agccaaattc accgagcagg agtgagggaa acggccccag ggccagccca
+      961 gcagccaacc tgaccaaagg cctgctgtgt gcagcacgcc tgctctaagc acttgacacg
+     1021 tgcaactcac tcaatcctca cagcagcccc ttgagaaaga tggggccacg aacgtgggta
+     1081 ggtgacccgc ctgagtccca gagcccaaaa cggtggccag caactgcccc cacatgtacc
+     1141 cccagagggc agtcaggccc cagaggaagc ctggcccacc ccaccatacc tgaggcactc
+     1201 tctcgggctt tggccaacat acaaagcttg atctccaagc caatggcttt ggccaggggc
+     1261 ggtggcacgg cattg
+//

@@ -152,7 +152,7 @@ def setup_Fig3B(download=True):
         
         group_descriptions[group_name] = {
             'target_info': target,
-            'supplemental_indices': 'hg38',
+            'supplemental_indices': '',
             'experiment_type': 'prime_editing',
             'pegRNAs': f'{target}_3b',
             'sgRNA': f'{target}_3b_{nick_offset}' if nick_offset != 'none' else '',
@@ -186,6 +186,92 @@ def setup_Fig3B(download=True):
         sample_sheet_df.loc[sample_sheet_df['group'] == group, 'color'] = g_i + 1
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+def setup_Fig4F(download=True):
+    rows = get_fig_rows('Fig4_f')
+
+    fig_dir = data_dir / 'Fig4F'
+    fig_dir.mkdir(exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    sgRNAs = pd.read_csv(targets_dir / 'sgRNAs.csv', index_col='name').squeeze()
+
+    def parse_fn(fn):
+        _, _, locus, edit, rep = fn.split('.')[0].split('_')
+        rep = int(rep[-1])
+        return locus, edit, rep
+
+    def group_name_to_locus(group_name):
+        locus, edit = group_name.split('_')
+        return locus
+
+    def group_name_to_pegRNA_name(group_name):
+        locus, edit = group_name.split('_')
+        pegRNA_name = f'{locus}_4f_{edit}'
+        return pegRNA_name
+
+    def group_name_to_sgRNA_name(group_name):
+        locus, edit = group_name.split('_')
+        matches = [n for n in sgRNAs.index if n.startswith(f'{locus}_4')]
+
+        if len(matches) != 1:
+            seqs = set(sgRNAs.loc[matches])
+            if len(seqs) > 1:
+                print('Warning: more than one possible nicking sgRNA')
+
+        sgRNA_name = matches[0]
+
+        return sgRNA_name
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        locus, edit, rep = parse_fn(original_fastq_fn)
+        
+        group_name = f'{locus}_{edit}'
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'prime_editing',
+            'target_info': group_name_to_locus(group_name),
+            'pegRNAs': group_name_to_pegRNA_name(group_name),
+            'sgRNA': group_name_to_sgRNA_name(group_name),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+    #make_targets()
 
 def setup_Fig4G(download=True):
     rows = get_fig_rows('Fig4_g')
@@ -223,7 +309,7 @@ def setup_Fig4G(download=True):
 
     group_descriptions = {
         group_name: {
-            'supplemental_indices': 'hg38',
+            'supplemental_indices': '',
             'experiment_type': 'prime_editing',
             'target_info': 'HEK3',
             'pegRNAs': group_name_to_pegRNA_name(group_name),
@@ -252,6 +338,117 @@ def setup_Fig4G(download=True):
 
     sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
 
+def setup_Fig4H(download=True):
+    rows = get_fig_rows('Fig4_h')
+
+    fig_dir = data_dir / 'Fig4H'
+    fig_dir.mkdir(exist_ok=True)
+
+    if download:
+        download_rows(rows, fig_dir)
+
+    sgRNAs = pd.read_csv(targets_dir / 'sgRNAs.csv', index_col='name').squeeze()
+    pegRNAs = pd.read_csv(targets_dir / 'pegRNAs.csv', index_col='name').squeeze()
+
+    def parse_fn(fn):
+        fields = fn.split('.')[0].split('_')
+        locus = fields[2]
+        rep = fields[-1] 
+        edit = '_'.join(fields[3:-1])
+        rep = int(rep[-1])
+        return locus, edit, rep
+
+    def group_name_to_locus(group_name):
+        locus, edit = group_name.split('_', 1)
+        return locus
+
+    def group_name_to_pegRNA_name(group_name):
+        locus, edit = group_name.split('_', 1)
+        substrings_to_expand = [
+            '1AC',
+            '6GT',
+            '6GA',
+            '5GT',
+            '2GC',
+            '5GC',
+            '6GT',
+            '1CA',
+            '5GT',
+        ]
+
+        for substring in substrings_to_expand:
+            edit = edit.replace(substring, f'{substring[:2]}to{substring[2:]}')
+
+        edit = edit.replace('2AAin', '2AAins')
+
+        pegRNA_name = f'{locus}_4h_{edit}'
+
+        if pegRNA_name not in pegRNAs.index:
+            raise ValueError(pegRNA_name)
+
+        return pegRNA_name
+
+    def group_name_to_sgRNA_name(group_name):
+        locus, edit = group_name.split('_', 1)
+        matches = [n for n in sgRNAs.index if n.startswith(f'{locus}_4')]
+
+        if len(matches) != 1:
+            seqs = set(sgRNAs.loc[matches])
+            if len(seqs) > 1:
+                print('Warning: more than one possible nicking sgRNA')
+
+        sgRNA_name = matches[0]
+
+        return sgRNA_name
+
+    groups = defaultdict(dict)
+
+    for SRR_accession, original_fastq_fn in rows.items():
+        locus, edit, rep = parse_fn(original_fastq_fn)
+        
+        group_name = f'{locus}_{edit}'
+        exp_name = f'{group_name}_{rep}'
+        
+        info = {
+            'R1': f'{SRR_accession}.fastq.gz',
+            'replicate': rep,
+        }
+
+        groups[group_name][exp_name] = info
+
+    group_descriptions = {
+        group_name: {
+            'supplemental_indices': '',
+            'experiment_type': 'prime_editing',
+            'target_info': group_name_to_locus(group_name),
+            'pegRNAs': group_name_to_pegRNA_name(group_name),
+            'sgRNA': group_name_to_sgRNA_name(group_name),
+        } for group_name in groups
+    }    
+
+    group_descriptions_df = pd.DataFrame.from_dict(group_descriptions, orient='index')
+    group_descriptions_df.index.name = 'group'
+    group_descriptions_df.sort_index(inplace=True)
+
+    group_descriptions_df.to_csv(fig_dir / 'group_descriptions.csv')
+
+    sample_sheet = {}
+
+    for group_name, group in groups.items():
+        for exp_name, info in group.items():
+            sample_sheet[exp_name] = {
+                'group': group_name,
+                **info,
+            }
+
+    sample_sheet_df = pd.DataFrame.from_dict(sample_sheet, orient='index')
+    sample_sheet_df.index.name = 'sample_name'
+    sample_sheet_df.sort_index(inplace=True)
+
+    sample_sheet_df.to_csv(fig_dir / 'sample_sheet.csv')
+
+    #make_targets()
+
 def make_targets():
     batches = rs.arrayed_experiment_group.get_all_batches(base_dir)
     all_groups = pd.concat({name: batch.group_descriptions for name, batch in batches.items()})
@@ -270,7 +467,7 @@ def make_targets():
                 sgRNAs.add(sgRNA)
 
         targets[ti_name] = {
-            'genome': 'hg38',
+            'genome': '',
             'amplicon_primers': ti_name,
             'pegRNAs': ';'.join(sorted(pegRNAs)),
             'sgRNA_sequence': ';'.join(sorted(sgRNAs)),

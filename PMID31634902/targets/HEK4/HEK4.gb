@@ -1,0 +1,58 @@
+LOCUS       HEK4                    1288 bp    DNA              UNK 01-JAN-1980
+DEFINITION  .
+ACCESSION   <unknown id>
+VERSION     <unknown id>
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     misc_feature    501..520
+                     /label="forward_primer"
+                     /ApEinfo_fwdcolor="#75C6A9"
+     misc_feature    complement(769..788)
+                     /label="reverse_primer"
+                     /ApEinfo_fwdcolor="#9eafd2"
+     misc_feature    501..505
+                     /label="sequencing_start"
+     misc_feature    501..505
+                     /label="anchor"
+     sgRNA_SpCas9H840complement(729..748)
+                     /label="HEK4_3b_+52"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+     sgRNA_SpCas9H840complement(751..770)
+                     /label="HEK4_3b_+74"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+     sgRNA_SpCas9H840complement(651..669)
+                     /label="HEK4_3b_-26"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+     sgRNA_SpCas9H840complement(625..644)
+                     /label="HEK4_3b_-52"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+     sgRNA_SpCas9H840complement(582..601)
+                     /label="HEK4_3b_-95"
+                     /ApEinfo_fwdcolor="#c6c9d1"
+ORIGIN
+        1 tggacagggg agacttcagg tggagtcatc gggaaaagcc tctccataaa gtgaccttct
+       61 gggagaaaac cgaggggtaa gaatctggtc ctgcaaagat ctgggcaaga aatgtccagg
+      121 tgtagggaac agcgaggtca aagtcaccat cacaaggaaa cgcttggtgt attgaggagc
+      181 agcagagaag ttggagtgaa ggcagagagg ggttaaggta gcatatacct tgaaagggga
+      241 ggctcctata ggggcttaca ggcgatataa atcattcatt cattcaacac atatttattg
+      301 agcatctact gagatcctgt ccttagttta ctgcgtggag acagaccaca agcaggtaaa
+      361 caagcaaata tgtaagtccc aggtcagata aattttagga agtgctgttt tccagtggtt
+      421 caatggtcat cccagggcag aggtggggag acctgctgag ggcggcttct ccctcagtca
+      481 gtccatgcct gcagggtctg gaacccaggt agccagagac ccgctggtct tctttcccct
+      541 cccctgccct cccctccctt caagatggct gacaaaggcc gggctgggtg gaaggaaggg
+      601 aggaagggcg aggcagaggg tccaaagcag gatgacaggc aggggcaccg cggcgccccg
+      661 gtggcactgc ggctggaggt gggggttaaa gcggagactc tggtgctgtg tgactacagt
+      721 gggggccctg ccctctctga gcccccgcct ccaggcctgt gtgtgtgtct ccgttcgggt
+      781 tgaaaggagc ccgggaaaaa ggccccagaa ggagtctggt tttggacgtc tgaccccacc
+      841 cctcccgctt agggcttctg atcccccagg gtgatttcac tggcccgggg ttgggagggc
+      901 agggggccag ggggcggagc ccgcggagag gggcggaggg gaggctccga gcgatttcaa
+      961 atttccctcg tccccgcccc cccgttcccc ccgcgcccgg gcggggatct gagtggctgc
+     1021 ggcgggggca cccccgggcg ggggcggggc aagagccggg ccggggctac aaggggagtc
+     1081 ggcaccgccc cctccccacc cactcccgct gccccgtccg gcccgcgccg cttcctcgca
+     1141 gcagctgctc ccggctccgc ggccgcagcc cgcgtggacg ctccgagcgc cccccgacgg
+     1201 acgggaccgg ctccctggcg gtcgggcgag cgggcggcaa cgctgcccgg ccggcagcgc
+     1261 tggggttaag tggcccaagt aaacctag
+//

@@ -1,0 +1,9 @@
+features_to_show:
+- - RUNX1
+  - forward_primer
+- - RUNX1
+  - reverse_primer
+genome_source: hg38
+sources:
+- RUNX1
+target: RUNX1

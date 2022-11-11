@@ -1,0 +1,9 @@
+features_to_show:
+- - VEGFA
+  - forward_primer
+- - VEGFA
+  - reverse_primer
+genome_source: hg38
+sources:
+- VEGFA
+target: VEGFA

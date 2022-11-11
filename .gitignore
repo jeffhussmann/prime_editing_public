@@ -1,4 +1,6 @@
 */results
+*/indices
 *.fastq.gz
 *.pyc
 *.ipynb_checkpoints
+figures
