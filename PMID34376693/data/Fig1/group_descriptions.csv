@@ -1,0 +1,2 @@
+group,supplemental_indices,experiment_type,target_info,sgRNAs,min_relevant_length,condition_keys,baseline_condition
+eGFP,,prime_editing,eGFP,eGFP_A;eGFP_B,100,genetic_background,wild-type

@@ -1,0 +1,9 @@
+sample_name,R1,R2,group,genetic_background,replicate
+HPRT-GFP_Ctc1D5-1G_p181-p182_GFPneg,SRR12079891_1.fastq.gz,SRR12079891_2.fastq.gz,eGFP,CTC1-/-,1
+HPRT-GFP_Ctc1H2-3E_p181-p182_GFPneg,SRR12079902_1.fastq.gz,SRR12079902_2.fastq.gz,eGFP,CTC1-/-,2
+HPRT-GFP_Ku80-D10_p181-p182_GFPneg,SRR12079913_1.fastq.gz,SRR12079913_2.fastq.gz,eGFP,Ku80-/-,1
+HPRT-GFP_Ku80-B9_p181-p182_GFPneg,SRR12079924_1.fastq.gz,SRR12079924_2.fastq.gz,eGFP,Ku80-/-,2
+HPRT-GFP_Polq-B8_p181-p182_GFPneg,SRR12079935_1.fastq.gz,SRR12079935_2.fastq.gz,eGFP,Polq-/-,1
+HPRT-GFP_Polq-B5_p181-p182_GFPneg,SRR12079946_1.fastq.gz,SRR12079946_2.fastq.gz,eGFP,Polq-/-,2
+HPRT-GFP_WT-G1_p181-p182_GFPneg,SRR12079957_1.fastq.gz,SRR12079957_2.fastq.gz,eGFP,wild-type,1
+HPRT-GFP_WT-D1_p181-p182_GFPneg,SRR12079958_1.fastq.gz,SRR12079958_2.fastq.gz,eGFP,wild-type,2
